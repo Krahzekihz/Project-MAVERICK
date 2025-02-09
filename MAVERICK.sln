@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35312.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MAVERICK", "MAVERICK.vcxproj", "{ED8EDF28-8C38-404A-B251-E74DD3F4D28E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ED8EDF28-8C38-404A-B251-E74DD3F4D28E}.Debug|x64.ActiveCfg = Debug|x64
+		{ED8EDF28-8C38-404A-B251-E74DD3F4D28E}.Debug|x64.Build.0 = Debug|x64
+		{ED8EDF28-8C38-404A-B251-E74DD3F4D28E}.Release|x64.ActiveCfg = Release|x64
+		{ED8EDF28-8C38-404A-B251-E74DD3F4D28E}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E6E0B1D7-85C6-4704-A451-16EF6A536812}
+	EndGlobalSection
+EndGlobal
