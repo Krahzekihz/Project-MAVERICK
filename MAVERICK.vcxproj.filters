@@ -50,6 +50,9 @@
     <None Include="TaskDelegate.qml">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="DragDropWindow.qml">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="database.h">
@@ -61,5 +64,10 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="task.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

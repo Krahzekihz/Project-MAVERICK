@@ -1,33 +1,34 @@
 #include "taskmanager.h"
+#include <QDateTime>
 #include <QDebug>
-#include <QFile>
-#include <QTextStream>
+#include <QtSql/QSqlError>
+#include <QtSql/QSqlQuery>
+#include <QtWidgets/QFileDialog>
 
-TaskManager::TaskManager(QObject* parent) : QObject(parent) {}
-
-// Dummy function to fetch tasks
-QVariantList TaskManager::fetchTasks() {
-    QVariantList taskList;
-    QVariantMap task;
-    task["taskName"] = "Test Task";
-    task["tags"] = "Sample";
-    task["dueDate"] = "2025-02-15";
-    taskList.append(task);
-    return taskList;
+TaskManager::TaskManager(QObject* parent) : QObject(parent) {
+    qDebug() << "TaskManager initialized";
 }
 
-// Dummy function to add a task
-void TaskManager::addTask(const QString& taskName, const QString& tags, const QString& dueDate) {
-    qDebug() << "Task Added:" << taskName << tags << dueDate;
+void TaskManager::openDatabase(const QString& filePath) {
+    qDebug() << "Dropped file: " << filePath;
+
+    if (!filePath.endsWith(".accdb")) {
+        qDebug() << "Invalid file type!";
+        return;
+    }
+
+    setupDatabase(filePath);
 }
 
-// Dummy function to export tasks
-void TaskManager::exportTasksToTxt() {
-    QFile file("tasks.txt");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        out << "Sample Task, Sample Tag, 2025-02-15\n";
-        file.close();
-        qDebug() << "Tasks exported successfully!";
+void TaskManager::setupDatabase(const QString& dbPath) {
+    db = QSqlDatabase::addDatabase("QODBC");
+    db.setDatabaseName(dbPath);
+
+    if (!db.open()) {
+        qDebug() << "Database error: " << db.lastError().text();
+    }
+    else {
+        qDebug() << "Database connected successfully!";
+        emit databaseConnected();
     }
 }

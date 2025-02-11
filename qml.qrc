@@ -1,6 +1,9 @@
-<!DOCTYPE RCC>
-<RCC version="1.0">
-    <qresource>
+<RCC>
+    <qresource prefix="/">
         <file>main.qml</file>
+        <file>DragDropWindow.qml</file>
+        <file>TaskDelegate.qml</file>
+        <file>TaskList.qml</file>
+        <file>TodoList.qml</file>
     </qresource>
 </RCC>
