@@ -1,4 +1,4 @@
-#MAVERICK: Task List / To-Do List Application with Qt Integration
+# MAVERICK: Task List / To-Do List Application with Qt Integration
 
 Welcome to the Task List / To-Do List Application! This project is designed to help you manage your tasks efficiently using a user-friendly interface built with Qt. The application allows you to create, manage, and track your tasks with various features, including tagging, due dates, reminders, and more.
 
