@@ -32,11 +32,11 @@
     <property name="currentIndex">
      <number>0</number>
     </property>
-    <widget class="QWidget" name="TaskManager">
+    <widget class="QWidget" name="TaskManagerTab">
      <attribute name="title">
       <string>Check List</string>
      </attribute>
-     <widget class="QFrame" name="frame">
+     <widget class="QFrame" name="ChecklistFrame">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -51,7 +51,7 @@
       <property name="frameShadow">
        <enum>QFrame::Shadow::Raised</enum>
       </property>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="AddTaskButton">
        <property name="geometry">
         <rect>
          <x>780</x>
@@ -254,7 +254,7 @@
         </widget>
        </widget>
       </widget>
-      <widget class="QTextEdit" name="textEdit">
+      <widget class="QTextEdit" name="Addtask">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -274,7 +274,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Enter New Task&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-      <widget class="QToolButton" name="toolButton">
+      <widget class="QToolButton" name="SettingsButton">
        <property name="geometry">
         <rect>
          <x>1070</x>
@@ -289,11 +289,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_2">
+    <widget class="QWidget" name="EisenhowerTab">
      <attribute name="title">
       <string>Eisenhower Matrix</string>
      </attribute>
-     <widget class="QGroupBox" name="OngoingSection_2">
+     <widget class="QGroupBox" name="UrgentandImportant">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -388,7 +388,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </widget>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="OngoingSection_3">
+     <widget class="QGroupBox" name="ImportantNotUrgent">
       <property name="geometry">
        <rect>
         <x>550</x>
@@ -483,7 +483,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </widget>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="OngoingSection_4">
+     <widget class="QGroupBox" name="UrgentNotImportant">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -578,7 +578,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </widget>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="OngoingSection_5">
+     <widget class="QGroupBox" name="NotUrgentNotImportant">
       <property name="geometry">
        <rect>
         <x>550</x>
@@ -673,7 +673,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </widget>
       </widget>
      </widget>
-     <widget class="QPushButton" name="pushButton_22">
+     <widget class="QPushButton" name="AddTaskButton_2">
       <property name="geometry">
        <rect>
         <x>780</x>
@@ -686,7 +686,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        <string>Add Task</string>
       </property>
      </widget>
-     <widget class="QToolButton" name="toolButton_2">
+     <widget class="QToolButton" name="Settings">
       <property name="geometry">
        <rect>
         <x>1070</x>
@@ -699,7 +699,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        <string>⚙️</string>
       </property>
      </widget>
-     <widget class="QTextEdit" name="textEdit_2">
+     <widget class="QTextEdit" name="AddTask">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -720,7 +720,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab">
+    <widget class="QWidget" name="CalendarTab">
      <attribute name="title">
       <string>Calendar</string>
      </attribute>
@@ -735,11 +735,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_5">
+    <widget class="QWidget" name="PomodoroTab">
      <attribute name="title">
       <string>Pomodoro</string>
      </attribute>
-     <widget class="QTextEdit" name="textEdit_3">
+     <widget class="QTextEdit" name="NotesEdit">
       <property name="geometry">
        <rect>
         <x>710</x>
@@ -759,7 +759,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Notes here&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
-     <widget class="QTabWidget" name="tabWidget_2">
+     <widget class="QTabWidget" name="PomodoroTimersTab">
       <property name="geometry">
        <rect>
         <x>140</x>
@@ -769,13 +769,13 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
-      <widget class="QWidget" name="tab_6">
+      <widget class="QWidget" name="TimerTab">
        <attribute name="title">
-        <string>Tab 1</string>
+        <string>Timer</string>
        </attribute>
-       <widget class="QPushButton" name="pushButton_23">
+       <widget class="QPushButton" name="TimerStart">
         <property name="geometry">
          <rect>
           <x>50</x>
@@ -788,7 +788,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <string>Start</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_24">
+       <widget class="QPushButton" name="TimerStop">
         <property name="geometry">
          <rect>
           <x>140</x>
@@ -801,7 +801,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <string>Stop</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_25">
+       <widget class="QPushButton" name="TimerReset">
         <property name="geometry">
          <rect>
           <x>230</x>
@@ -814,7 +814,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <string>Reset</string>
         </property>
        </widget>
-       <widget class="QWidget" name="widget_21" native="true">
+       <widget class="QWidget" name="TimerWidget" native="true">
         <property name="geometry">
          <rect>
           <x>50</x>
@@ -824,7 +824,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          </rect>
         </property>
        </widget>
-       <widget class="QToolButton" name="toolButton_3">
+       <widget class="QToolButton" name="TimerSettings">
         <property name="geometry">
          <rect>
           <x>340</x>
@@ -838,11 +838,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
         </property>
        </widget>
       </widget>
-      <widget class="QWidget" name="tab_7">
+      <widget class="QWidget" name="StopwatchTab">
        <attribute name="title">
-        <string>Tab 2</string>
+        <string>Stopwatch</string>
        </attribute>
-       <widget class="QPushButton" name="pushButton_26">
+       <widget class="QPushButton" name="StopwatchStart">
         <property name="geometry">
          <rect>
           <x>80</x>
@@ -855,7 +855,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <string>Start</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_27">
+       <widget class="QPushButton" name="StopwatchStop">
         <property name="geometry">
          <rect>
           <x>170</x>
@@ -868,7 +868,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <string>Stop</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pushButton_28">
+       <widget class="QPushButton" name="StopwatchReset">
         <property name="geometry">
          <rect>
           <x>260</x>
@@ -881,7 +881,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <string>Reset</string>
         </property>
        </widget>
-       <widget class="QWidget" name="widget_22" native="true">
+       <widget class="QWidget" name="StopwatchWidget" native="true">
         <property name="geometry">
          <rect>
           <x>70</x>
@@ -891,7 +891,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          </rect>
         </property>
        </widget>
-       <widget class="QToolButton" name="toolButton_4">
+       <widget class="QToolButton" name="StopwatchSettings">
         <property name="geometry">
          <rect>
           <x>350</x>
