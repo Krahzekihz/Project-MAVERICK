@@ -1,0 +1,169 @@
+#include <QCoreApplication>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QDebug>
+#include <QVariant>
+#include <QStringList>
+#include <QSet>
+
+// Enum for Priority Levels
+enum Priority {
+    Low,
+    Medium,
+    High
+};
+
+QString priorityToString(Priority priority) {
+    switch (priority) {
+    case Low:
+        return "Low";
+    case Medium:
+        return "Medium";
+    case High:
+        return "High";
+    default:
+        return "Unknown";
+    }
+}
+
+Priority stringToPriority(const QString &priorityStr) {
+    if (priorityStr == "Low") return Low;
+    if (priorityStr == "Medium") return Medium;
+    if (priorityStr == "High") return High;
+    return Low; // Default to Low if unknown
+}
+
+// Helper function to convert QStringList to comma-separated string
+QString listToString(const QStringList &list) {
+    return list.join(",");
+}
+
+// Helper function to convert comma-separated string to QStringList
+QStringList stringToList(const QString &str) {
+    return str.split(",", Qt::SkipEmptyParts);
+}
+
+// CRUD Functions (with priority and tags)
+void createTask(QSqlDatabase &db, const QString &taskName, const QString &subject, Priority priority, const QStringList &tags) {
+    QSqlQuery query(db);
+    query.prepare("INSERT INTO tasks (name, subject, priority, tags) VALUES (:name, :subject, :priority, :tags)");
+    query.bindValue(":name", taskName);
+    query.bindValue(":subject", subject);
+    query.bindValue(":priority", priorityToString(priority));
+    query.bindValue(":tags", listToString(tags));
+
+    if (!query.exec()) {
+        qDebug() << "Error creating task:" << query.lastError().text();
+    } else {
+        qDebug() << "Task created successfully.";
+    }
+}
+
+void readTasks(QSqlDatabase &db, const QStringList &filterTags = QStringList(), Priority filterPriority = Low, bool filterPriorityEnabled = false) {
+    QSqlQuery query(db);
+    QString sql = "SELECT id, name, subject, priority, tags FROM tasks";
+
+    if (!filterTags.isEmpty() || filterPriorityEnabled) {
+        sql += " WHERE ";
+        QStringList conditions;
+        if (!filterTags.isEmpty()) {
+            QString tagCondition = "tags LIKE '%" + filterTags.join("%' OR tags LIKE '%") + "%'";
+            conditions.append("(" + tagCondition + ")");
+        }
+        if (filterPriorityEnabled) {
+            conditions.append("priority = '" + priorityToString(filterPriority) + "'");
+        }
+        sql += conditions.join(" AND ");
+    }
+
+    if (!query.exec(sql)) {
+        qDebug() << "Error reading tasks:" << query.lastError().text();
+        return;
+    }
+
+    qDebug() << "Tasks:";
+    while (query.next()) {
+        int id = query.value(0).toInt();
+        QString name = query.value(1).toString();
+        QString subject = query.value(2).toString();
+        QString priorityStr = query.value(3).toString();
+        QStringList tags = stringToList(query.value(4).toString());
+
+        qDebug() << "ID:" << id << ", Name:" << name << ", Subject:" << subject << ", Priority:" << priorityStr << ", Tags:" << tags;
+    }
+}
+
+void updateTask(QSqlDatabase &db, int taskId, const QString &newTaskName, const QString &newSubject, Priority newPriority, const QStringList &newTags) {
+    QSqlQuery query(db);
+    query.prepare("UPDATE tasks SET name = :name, subject = :subject, priority = :priority, tags = :tags WHERE id = :id");
+    query.bindValue(":name", newTaskName);
+    query.bindValue(":subject", newSubject);
+    query.bindValue(":priority", priorityToString(newPriority));
+    query.bindValue(":tags", listToString(newTags));
+    query.bindValue(":id", taskId);
+
+    if (!query.exec()) {
+        qDebug() << "Error updating task:" << query.lastError().text();
+    } else {
+        qDebug() << "Task updated successfully.";
+    }
+}
+
+void deleteTask(QSqlDatabase &db, int taskId) {
+    QSqlQuery query(db);
+    query.prepare("DELETE FROM tasks WHERE id = :id");
+    query.bindValue(":id", taskId);
+
+    if (!query.exec()) {
+        qDebug() << "Error deleting task:" << query.lastError().text();
+    } else {
+        qDebug() << "Task deleted successfully.";
+    }
+}
+
+int main(int argc, char *argv[]) {
+    QCoreApplication a(argc, argv);
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("tasks.sqlite");
+
+    if (!db.open()) {
+        qDebug() << "Error: Cannot connect to database:" << db.lastError().text();
+        return 1;
+    }
+
+    QSqlQuery createTableQuery(db);
+    createTableQuery.exec("CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, subject TEXT, priority TEXT, tags TEXT)");
+
+    // Example Usage:
+    createTask(db, "Write Report", "Work", High, QStringList() << "report" << "work");
+    createTask(db, "Study Math", "Education", Medium, QStringList() << "math" << "study");
+    createTask(db, "Clean Room", "Personal", Low, QStringList() << "cleaning");
+    createTask(db, "Debug Code", "Work", High, QStringList() << "code" << "debug" << "work");
+
+    qDebug() << "\nAll Tasks:";
+    readTasks(db);
+
+    qDebug() << "\nTasks with 'work' Tag:";
+    readTasks(db, QStringList() << "work");
+
+    qDebug() << "\nHigh Priority Tasks:";
+    readTasks(db, QStringList(), High, true);
+
+    qDebug() << "\nHigh Priority Work Tasks:";
+    readTasks(db, QStringList() << "work", High, true);
+
+    updateTask(db, 2, "Study Advanced Math", "Education", High, QStringList() << "math" << "advanced" << "study");
+
+    qDebug() << "\nUpdated Tasks:";
+    readTasks(db);
+
+    deleteTask(db, 3);
+
+    qDebug() << "\nTasks after deletion:";
+    readTasks(db);
+
+    db.close();
+    return 0;
+}
