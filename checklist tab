@@ -1,0 +1,117 @@
+#include <QApplication>
+#include <QMainWindow>
+#include <QTabWidget>
+#include <QListWidget>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QWidget>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QDebug>
+#include <QMessageBox>
+
+class ChecklistTab : public QWidget {
+public:
+    ChecklistTab(QWidget *parent = nullptr) : QWidget(parent) {
+        setupUI();
+        setupDatabase();
+        loadChecklistItems();
+    }
+
+private:
+    void setupUI() {
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+
+        itemListWidget = new QListWidget(this);
+        mainLayout->addWidget(itemListWidget);
+
+        QHBoxLayout *inputLayout = new QHBoxLayout;
+        itemLineEdit = new QLineEdit(this);
+        addButton = new QPushButton("Add", this);
+        inputLayout->addWidget(itemLineEdit);
+        inputLayout->addWidget(addButton);
+        mainLayout->addLayout(inputLayout);
+
+        connect(addButton, &QPushButton::clicked, this, &ChecklistTab::addItem);
+        connect(itemListWidget, &QListWidget::itemDoubleClicked, this, &ChecklistTab::toggleItemChecked);
+    }
+
+    void setupDatabase() {
+        db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName("checklist.sqlite");
+        if (!db.open()) {
+            QMessageBox::critical(this, "Error", "Cannot connect to database: " + db.lastError().text());
+            return;
+        }
+        QSqlQuery query(db);
+        query.exec("CREATE TABLE IF NOT EXISTS checklist (item TEXT, checked INTEGER)");
+    }
+
+    void loadChecklistItems() {
+        itemListWidget->clear();
+        QSqlQuery query(db);
+        if (query.exec("SELECT item, checked FROM checklist")) {
+            while (query.next()) {
+                QString item = query.value(0).toString();
+                bool checked = query.value(1).toBool();
+                QListWidgetItem *listItem = new QListWidgetItem(item);
+                listItem->setFlags(listItem->flags() | Qt::ItemIsUserCheckable);
+                listItem->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
+                itemListWidget->addItem(listItem);
+            }
+        } else {
+            QMessageBox::critical(this, "Error", "Error loading checklist: " + query.lastError().text());
+        }
+    }
+
+    void addItem() {
+        QString itemText = itemLineEdit->text().trimmed();
+        if (!itemText.isEmpty()) {
+            QSqlQuery query(db);
+            query.prepare("INSERT INTO checklist (item, checked) VALUES (:item, 0)");
+            query.bindValue(":item", itemText);
+            if (query.exec()) {
+                loadChecklistItems();
+                itemLineEdit->clear();
+            } else {
+                QMessageBox::critical(this, "Error", "Error adding item: " + query.lastError().text());
+            }
+        }
+    }
+
+    void toggleItemChecked(QListWidgetItem *item) {
+        bool checked = (item->checkState() == Qt::Checked);
+        QString itemText = item->text();
+        QSqlQuery query(db);
+        query.prepare("UPDATE checklist SET checked = :checked WHERE item = :item");
+        query.bindValue(":checked", checked);
+        query.bindValue(":item", itemText);
+        if (!query.exec()) {
+            QMessageBox::critical(this, "Error", "Error updating item: " + query.lastError().text());
+        }
+    }
+
+private:
+    QListWidget *itemListWidget;
+    QLineEdit *itemLineEdit;
+    QPushButton *addButton;
+    QSqlDatabase db;
+};
+
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+
+    QMainWindow mainWindow;
+    QTabWidget *tabWidget = new QTabWidget(&mainWindow);
+    ChecklistTab *checklistTab = new ChecklistTab();
+    tabWidget->addTab(checklistTab, "Checklist");
+
+    mainWindow.setCentralWidget(tabWidget);
+    mainWindow.resize(400, 300);
+    mainWindow.show();
+
+    return app.exec();
+}
