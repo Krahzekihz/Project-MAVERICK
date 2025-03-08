@@ -1,0 +1,185 @@
+#include <QApplication>
+#include <QMainWindow>
+#include <QTabWidget>
+#include <QListWidget>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QWidget>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QDebug>
+#include <QMessageBox>
+#include <QDateTime>
+#include <QTimer>
+#include <QSystemTrayIcon>
+#include <QMenu>
+#include <QInputDialog>
+
+class TasksTab : public QWidget {
+public:
+    TasksTab(QWidget *parent = nullptr) : QWidget(parent) {
+        setupUI();
+        setupDatabase();
+        loadTasks();
+        startTimer();
+    }
+
+private:
+    void setupUI() {
+        QVBoxLayout *mainLayout = new QVBoxLayout(this);
+        taskListWidget = new QListWidget(this);
+        mainLayout->addWidget(taskListWidget);
+
+        QHBoxLayout *inputLayout = new QHBoxLayout;
+        taskLineEdit = new QLineEdit(this);
+        addButton = new QPushButton("Add Task", this);
+        inputLayout->addWidget(taskLineEdit);
+        inputLayout->addWidget(addButton);
+        mainLayout->addLayout(inputLayout);
+
+        connect(addButton, &QPushButton::clicked, this, &TasksTab::addTask);
+        connect(taskListWidget, &QListWidget::itemDoubleClicked, this, &TasksTab::editReminderTime);
+    }
+
+    void setupDatabase() {
+        db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName("tasks.sqlite");
+        if (!db.open()) {
+            QMessageBox::critical(this, "Error", "Cannot connect to database: " + db.lastError().text());
+            return;
+        }
+        QSqlQuery query(db);
+        query.exec("CREATE TABLE IF NOT EXISTS tasks (task TEXT, reminderTime TEXT)");
+    }
+
+    void loadTasks() {
+        taskListWidget->clear();
+        QSqlQuery query(db);
+        if (query.exec("SELECT task, reminderTime FROM tasks")) {
+            while (query.next()) {
+                QString task = query.value(0).toString();
+                QString reminderTimeStr = query.value(1).toString();
+                QListWidgetItem *listItem = new QListWidgetItem(task + " (Reminder: " + reminderTimeStr + ")");
+                taskListWidget->addItem(listItem);
+            }
+        } else {
+            QMessageBox::critical(this, "Error", "Error loading tasks: " + query.lastError().text());
+        }
+    }
+
+    void addTask() {
+        QString taskText = taskLineEdit->text().trimmed();
+        if (!taskText.isEmpty()) {
+            QDateTime reminderTime = QDateTime::currentDateTime().addSecs(600); // Default 10 minutes from now
+            QString reminderTimeStr = reminderTime.toString(Qt::ISODate);
+
+            QSqlQuery query(db);
+            query.prepare("INSERT INTO tasks (task, reminderTime) VALUES (:task, :reminderTime)");
+            query.bindValue(":task", taskText);
+            query.bindValue(":reminderTime", reminderTimeStr);
+            if (query.exec()) {
+                loadTasks();
+                taskLineEdit->clear();
+            } else {
+                QMessageBox::critical(this, "Error", "Error adding task: " + query.lastError().text());
+            }
+        }
+    }
+
+    void editReminderTime(QListWidgetItem *item) {
+        QString taskText = item->text().split(" (Reminder: ").first();
+        QSqlQuery query(db);
+        query.prepare("SELECT reminderTime FROM tasks WHERE task = :task");
+        query.bindValue(":task", taskText);
+        if (query.exec() && query.next()) {
+            QString currentReminderTimeStr = query.value(0).toString();
+            QDateTime currentReminderTime = QDateTime::fromString(currentReminderTimeStr, Qt::ISODate);
+            QDateTime newReminderTime = QInputDialog::getDateTime(this, "Edit Reminder Time", "Select new reminder time:", currentReminderTime);
+            if (newReminderTime.isValid()) {
+                QString newReminderTimeStr = newReminderTime.toString(Qt::ISODate);
+                query.prepare("UPDATE tasks SET reminderTime = :reminderTime WHERE task = :task");
+                query.bindValue(":reminderTime", newReminderTimeStr);
+                query.bindValue(":task", taskText);
+                if (query.exec()) {
+                    loadTasks();
+                } else {
+                    QMessageBox::critical(this, "Error", "Error updating reminder time: " + query.lastError().text());
+                }
+            }
+        }
+    }
+
+    void startTimer() {
+        timer = new QTimer(this);
+        connect(timer, &QTimer::timeout, this, &TasksTab::checkReminders);
+        timer->start(60000); // Check every minute
+    }
+
+    void checkReminders() {
+        QDateTime now = QDateTime::currentDateTime();
+        QSqlQuery query(db);
+        if (query.exec("SELECT task, reminderTime FROM tasks")) {
+            while (query.next()) {
+                QString task = query.value(0).toString();
+                QString reminderTimeStr = query.value(1).toString();
+                QDateTime reminderTime = QDateTime::fromString(reminderTimeStr, Qt::ISODate);
+                if (now >= reminderTime) {
+                    showNotification(task);
+                    deleteTask(task);
+                }
+            }
+        }
+    }
+
+    void showNotification(const QString &task) {
+        if (trayIcon) {
+            trayIcon->showMessage("Reminder", task, QSystemTrayIcon::Information, 5000);
+        } else {
+            QMessageBox::information(this, "Reminder", task);
+        }
+    }
+
+    void deleteTask(const QString &task) {
+        QSqlQuery query(db);
+        query.prepare("DELETE FROM tasks WHERE task = :task");
+        query.bindValue(":task", task);
+        query.exec();
+        loadTasks();
+    }
+
+    void setTrayIcon(QSystemTrayIcon* tray){
+        trayIcon = tray;
+    }
+
+private:
+    QListWidget *taskListWidget;
+    QLineEdit *taskLineEdit;
+    QPushButton *addButton;
+    QSqlDatabase db;
+    QTimer *timer;
+    QSystemTrayIcon *trayIcon = nullptr;
+};
+
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+
+    QMainWindow mainWindow;
+    QTabWidget *tabWidget = new QTabWidget(&mainWindow);
+    TasksTab *tasksTab = new TasksTab();
+    tabWidget->addTab(tasksTab, "Tasks");
+
+    mainWindow.setCentralWidget(tabWidget);
+    mainWindow.resize(400, 300);
+
+    QSystemTrayIcon trayIcon;
+    trayIcon.setIcon(QIcon(":/icon.png")); // Replace with your icon
+    trayIcon.show();
+    tasksTab->setTrayIcon(&trayIcon);
+
+    mainWindow.show();
+
+    return app.exec();
+}
