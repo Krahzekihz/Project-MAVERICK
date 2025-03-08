@@ -1,0 +1,88 @@
+#include <QCoreApplication>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QDebug>
+#include <QVariant>
+
+void createTask(QSqlDatabase &db, const QString &taskName, const QString &description) {
+    QSqlQuery query(db);
+    query.prepare("INSERT INTO tasks (name, description) VALUES (:name, :description)");
+    query.bindValue(":name", taskName);
+    query.bindValue(":description", description);
+
+    if (!query.exec()) {
+        qDebug() << "Error creating task:" << query.lastError().text();
+    } else {
+        qDebug() << "Task created successfully.";
+    }
+}
+
+void readTasks(QSqlDatabase &db) {
+    QSqlQuery query(db);
+    if (!query.exec("SELECT id, name, description FROM tasks")) {
+        qDebug() << "Error reading tasks:" << query.lastError().text();
+        return;
+    }
+
+    qDebug() << "Tasks:";
+    while (query.next()) {
+        int id = query.value(0).toInt();
+        QString name = query.value(1).toString();
+        QString description = query.value(2).toString();
+        qDebug() << "ID:" << id << ", Name:" << name << ", Description:" << description;
+    }
+}
+
+void updateTask(QSqlDatabase &db, int taskId, const QString &newTaskName, const QString &newDescription) {
+    QSqlQuery query(db);
+    query.prepare("UPDATE tasks SET name = :name, description = :description WHERE id = :id");
+    query.bindValue(":name", newTaskName);
+    query.bindValue(":description", newDescription);
+    query.bindValue(":id", taskId);
+
+    if (!query.exec()) {
+        qDebug() << "Error updating task:" << query.lastError().text();
+    } else {
+        qDebug() << "Task updated successfully.";
+    }
+}
+
+void deleteTask(QSqlDatabase &db, int taskId) {
+    QSqlQuery query(db);
+    query.prepare("DELETE FROM tasks WHERE id = :id");
+    query.bindValue(":id", taskId);
+
+    if (!query.exec()) {
+        qDebug() << "Error deleting task:" << query.lastError().text();
+    } else {
+        qDebug() << "Task deleted successfully.";
+    }
+}
+
+int main(int argc, char *argv[]) {
+    QCoreApplication a(argc, argv);
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("tasks.sqlite");
+
+    if (!db.open()) {
+        qDebug() << "Error: Cannot connect to database:" << db.lastError().text();
+        return 1;
+    }
+
+    QSqlQuery createTableQuery(db);
+    createTableQuery.exec("CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, description TEXT)");
+
+    // CRUD Operations:
+    createTask(db, "Finish Qt Project", "Complete the GUI and database integration.");
+    createTask(db, "Study for Exam", "Review all the materials.");
+    readTasks(db);
+    updateTask(db, 1, "Complete Qt Project", "Finish GUI and database.");
+    readTasks(db);
+    deleteTask(db, 2);
+    readTasks(db);
+
+    db.close();
+    return 0;
+}
