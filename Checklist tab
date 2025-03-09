@@ -1,0 +1,135 @@
+// checklistwidget.h
+#ifndef CHECKLISTWIDGET_H
+#define CHECKLISTWIDGET_H
+
+#include <QWidget>
+#include <QListWidget>
+#include <QCheckBox>
+#include <QVBoxLayout>
+#include <QStringList>
+
+class ChecklistWidget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    ChecklistWidget(QWidget *parent = nullptr);
+    void setItems(const QStringList &items);
+    QStringList checkedItems() const;
+
+private:
+    QListWidget *listWidget;
+    QVBoxLayout *layout;
+};
+
+#endif // CHECKLISTWIDGET_H
+
+// checklistwidget.cpp
+#include "checklistwidget.h"
+#include <QListWidgetItem>
+
+ChecklistWidget::ChecklistWidget(QWidget *parent) : QWidget(parent)
+{
+    listWidget = new QListWidget(this);
+    layout = new QVBoxLayout(this);
+    layout->addWidget(listWidget);
+    setLayout(layout);
+}
+
+void ChecklistWidget::setItems(const QStringList &items)
+{
+    listWidget->clear();
+    for (const QString &itemText : items) {
+        QListWidgetItem *listItem = new QListWidgetItem(listWidget);
+        QWidget *itemWidget = new QWidget(listWidget);
+        QHBoxLayout *itemLayout = new QHBoxLayout(itemWidget);
+        QCheckBox *checkBox = new QCheckBox(itemText, itemWidget);
+
+        itemLayout->addWidget(checkBox);
+        itemLayout->addStretch();
+        itemWidget->setLayout(itemLayout);
+
+        listItem->setSizeHint(itemWidget->sizeHint());
+        listWidget->addItem(listItem);
+        listWidget->setItemWidget(listItem, itemWidget);
+    }
+}
+
+QStringList ChecklistWidget::checkedItems() const
+{
+    QStringList checked;
+    for (int i = 0; i < listWidget->count(); ++i) {
+        QListWidgetItem *listItem = listWidget->item(i);
+        QWidget *itemWidget = listWidget->itemWidget(listItem);
+        QCheckBox *checkBox = itemWidget->findChild<QCheckBox *>();
+        if (checkBox && checkBox->isChecked()) {
+            checked.append(checkBox->text());
+        }
+    }
+    return checked;
+}
+
+// mainwindow.h (Example of how to use it)
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include "checklistwidget.h"
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+
+private:
+    ChecklistWidget *checklist;
+};
+
+#endif // MAINWINDOW_H
+
+// mainwindow.cpp
+#include "mainwindow.h"
+#include <QVBoxLayout>
+#include <QWidget>
+#include <QPushButton>
+#include <QDebug>
+
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
+{
+    QWidget *centralWidget = new QWidget(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+    checklist = new ChecklistWidget(centralWidget);
+    mainLayout->addWidget(checklist);
+
+    QStringList items;
+    items << "Apple" << "Banana" << "Cherry" << "Date" << "Elderberry";
+    checklist->setItems(items);
+
+    QPushButton *checkButton = new QPushButton("Check Selected", centralWidget);
+    mainLayout->addWidget(checkButton);
+
+    connect(checkButton, &QPushButton::clicked, [this]() {
+        QStringList checked = checklist->checkedItems();
+        qDebug() << "Checked items:";
+        for (const QString &item : checked) {
+            qDebug() << item;
+        }
+    });
+
+    centralWidget->setLayout(mainLayout);
+    setCentralWidget(centralWidget);
+}
+
+// main.cpp
+#include "mainwindow.h"
+#include <QApplication>
+
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+    return a.exec();
+}
