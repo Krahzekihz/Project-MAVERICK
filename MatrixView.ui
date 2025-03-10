@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MatrixView</class>
+ <widget class="QWidget" name="MatrixView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>758</width>
+    <height>439</height>
+   </rect>
+  </property>
+  <layout class="QGridLayout">
+   <item row="0" column="0">
+    <widget class="QListWidget" name="urgentImportant"/>
+   </item>
+   <item row="0" column="1">
+    <widget class="QListWidget" name="notUrgentImportant"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QListWidget" name="urgentNotImportant"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="QListWidget" name="notUrgentNotImportant"/>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
