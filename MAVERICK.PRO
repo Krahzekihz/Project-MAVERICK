@@ -1,7 +1,9 @@
-QT += core gui widgets sql
+QT += core gui widgets sql multimedia
 
 TARGET = MAVERICK
 TEMPLATE = app
+RESOURCES += resources.qrc
+
 
 SOURCES += main.cpp \
            mainwindow.cpp \

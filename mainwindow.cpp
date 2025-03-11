@@ -3,7 +3,7 @@
 
 //#include "taskmanager.h"
 //#include "calendar.h"
-//#include "eisenhower.h"
+//include "eisenhower.h"
 #include "pomodoro.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -22,10 +22,10 @@ void MainWindow::setupTabs() {
 
     // Create an instance of your Pomodoro widget (QWidget)
     Pomodoro *pomodoroTab = new Pomodoro(this);  // Make sure to pass 'this' as parent
-
+    //Eisenhower *eisenhowerMatrix = new Eisenhower(this);
     // Add Pomodoro as a tab to the QTabWidget (the one defined in the .ui file)
     ui->tabWidget->addTab(pomodoroTab, "Pomodoro");
-
+    //ui->tabWidget->addTab(eisenhowerMatrix, "Eisenhower Matrix");
     // Uncomment the following lines to add additional tabs
     // tabWidget->addTab(new TaskManager(this), "Task Manager");
     // tabWidget->addTab(new Calendar(this), "Calendar");
