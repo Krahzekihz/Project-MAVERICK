@@ -12,7 +12,6 @@ Welcome to the Task List / To-Do List Application! This project is designed to h
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
-- [Contact](#contact)
 
 ## Features
 
