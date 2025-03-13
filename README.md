@@ -16,7 +16,7 @@ Welcome to the Task List / To-Do List Application! This project is designed to h
 
 ## Features
 
-- **Task Management**: Create tasks with the following attributes:
+- **Task Management**: Create tasks with the following attributes: ❌
   - Task description
   - Tags for categorization
   - Due date
@@ -24,16 +24,16 @@ Welcome to the Task List / To-Do List Application! This project is designed to h
   - Automatic timestamp for task creation
   - **Priority sorting using the Eisenhower Matrix**
 
-- **Task States**: Manage tasks in three states:
+- **Task States**: Manage tasks in three states: ❌
   - Ongoing
   - Hidden
   - Complete (collapsible section to view all completed tasks)
 
-- **Data Storage**: Store tasks in a Microsoft Access database (.accdb) and export tasks to .accdb or .txt files.
+- **Data Storage**: Store tasks in a Microsoft Access database (.accdb) and export tasks to .accdb or .txt files. ❌
 
-- **User-Friendly Interface**: Intuitive design for easy navigation and task management.
+- **User-Friendly Interface**: Intuitive design for easy navigation and task management.  🤷
 
-- **Eisenhower Matrix**:
+- **Eisenhower Matrix**: ❌
   - Visual priority sorting using four quadrants:  
     1. **Urgent & Important** (Do it now)  
     2. **Not Urgent & Important** (Plan it)  
@@ -42,13 +42,13 @@ Welcome to the Task List / To-Do List Application! This project is designed to h
   - Drag and drop tasks between quadrants for easy prioritization.
   - Color-coded categories (customizable in settings).
 
-- **Calendar Integration**:
+- **Calendar Integration**:  ⏳
   - Calendar view for scheduling and tracking tasks.
   - Support for multiple views: 3-day, weekly, and yearly.
   - Time blocking for focused work sessions.
   - Task creation and reminders directly from the calendar.
 
-- **Pomodoro Timer**:
+- **Pomodoro Timer**: ✅
   - Circular progress timer with a digital clock in the center.
   - Independent timers for stopwatch and Pomodoro sessions.
   - Customizable Pomodoro session duration, break duration, number of breaks, and total session count.
