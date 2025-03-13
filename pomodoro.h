@@ -2,9 +2,11 @@
 #define POMODORO_H
 
 #include <QWidget>
+#include "database.h"
 #include "timer.h"
 #include "stopwatch.h"
 #include "notes.h"
+#include "pomodorosettings.h"
 
 namespace Ui {
 class Pomodoro;
@@ -15,22 +17,19 @@ class Pomodoro : public QWidget
     Q_OBJECT
 
 public:
-    explicit Pomodoro(QWidget *parent = nullptr);
+    explicit Pomodoro(Database *database, QWidget *parent = nullptr); // Ensure this line exists
     ~Pomodoro();
-    PomodoroSettings *settingsWindow;  // Expose Settings Window
-    Timer *timer;                     // Expose Timer
-
-
 
 private slots:
-    void openSettings(); // Slot to open the settings dialog
+    void openSettings();
 
 private:
     Ui::Pomodoro *ui;
-
-    Timer *timerUI;        // Timer Tab
-    Stopwatch *stopwatchUI; // Stopwatch Tab
-    Notes *notesWidget;     // Notes Widget
+    Database *db; // Database reference
+    Timer *timerUI; // Timer UI
+    Stopwatch *stopwatchUI; // Stopwatch UI
+    Notes *notesWidget; // Notes widget
+    PomodoroSettings *settingsWindow; // Settings window
 };
 
 #endif // POMODORO_H

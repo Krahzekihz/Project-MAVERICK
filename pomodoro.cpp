@@ -1,25 +1,25 @@
 #include "pomodoro.h"
 #include "ui_pomodoro.h"
-#include "timer.h"
-#include "stopwatch.h"
-#include "notes.h"
-#include "pomodorosettings.h"
+#include <QVBoxLayout>
 
-#include <QVBoxLayout> // Include this for QVBoxLayout
-
-Pomodoro::Pomodoro(QWidget *parent)
+Pomodoro::Pomodoro(Database *database, QWidget *parent) // Accept Database pointer
     : QWidget(parent)
     , ui(new Ui::Pomodoro)
+    , db(database)  // Store the database reference
+    , timerUI(new Timer(db, this))  // Pass database correctly
 {
     ui->setupUi(this);
 
     // Remove extra tabs (Tab 1 and Tab 2)
-    ui->tabWidget->removeTab(0); // Removes the first tab
-    ui->tabWidget->removeTab(0); // Removes the second tab (index shifts after removal)
+    ui->tabWidget->removeTab(0);
+    ui->tabWidget->removeTab(0);
 
+    // Connect to Database
+    if (!db->connectDatabase()) {
+        qDebug() << "❌ Failed to connect to database!";
+    }
 
-    // Instantiate Timer and Stopwatch UIs
-    timerUI = new Timer(this);
+    // Instantiate Stopwatch and Notes UIs
     stopwatchUI = new Stopwatch(this);
     notesWidget = new Notes(this);
 
@@ -29,26 +29,23 @@ Pomodoro::Pomodoro(QWidget *parent)
     // Add Stopwatch to the second tab
     ui->tabWidget->addTab(stopwatchUI, "Stopwatch");
 
-    // Create a layout for NotesWidget before adding Notes widget
+    // Set up Notes widget
     QVBoxLayout *notesLayout = new QVBoxLayout();
     ui->NotesWidget->setLayout(notesLayout);
     notesLayout->addWidget(notesWidget);
 
-
-
-    // Connect the Settings button to open the settings window
+    // Connect Settings button
     connect(ui->PomodoroSettings, &QToolButton::clicked, this, &Pomodoro::openSettings);
-
-
 }
 
 Pomodoro::~Pomodoro()
 {
     delete ui;
+    // Do not delete db here if it's managed elsewhere
 }
 
 void Pomodoro::openSettings()
 {
-    PomodoroSettings settingsDialog(this);
-    settingsDialog.exec();
+    settingsWindow = new PomodoroSettings(db, this);  // Pass Database only when needed
+    settingsWindow->exec();
 }

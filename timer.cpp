@@ -3,9 +3,11 @@
 #include "pomodorosettings.h"  // This one is crucial 🔥
 #include <QMessageBox>
 
-Timer::Timer(QWidget *parent)
+Timer::Timer(Database *database, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Timer)
+    , db(database)
+    , settingsWindow(new PomodoroSettings(db, this)) // Pass db instead of this
     , totalTime(25 * 60)  // Default 25 minutes
     , remainingTime(totalTime)
     , isRunning(false)
@@ -20,9 +22,23 @@ Timer::Timer(QWidget *parent)
     , player(new QMediaPlayer(this))
     , audioOutput(new QAudioOutput(this))
     , tray(new QSystemTrayIcon(this))
-    , settingsWindow(new PomodoroSettings(this))
+
+
 {
     ui->setupUi(this);
+
+    // 🔥 Initialize the session history table
+
+    ui->SessionHistoryTable->setColumnCount(4);
+    ui->SessionHistoryTable->setHorizontalHeaderLabels({"Start Time", "End Time", "Focus Duration", "Breaks Taken"});
+    ui->SessionHistoryTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->SessionHistoryTable->setEditTriggers(QAbstractItemView::NoEditTriggers); // Prevent editing rows
+    ui->SessionHistoryTable->setColumnWidth(0, 150);
+    ui->SessionHistoryTable->setColumnWidth(1, 150);
+    ui->SessionHistoryTable->setColumnWidth(2, 100);
+    ui->SessionHistoryTable->setColumnWidth(3, 100);
+
+    updateStatistics();
 
 
 
@@ -112,7 +128,8 @@ void Timer::updateCircle()
 void Timer::handleStart()
 {
     if (!isRunning) {
-        lcdNumber->display(formatTime(remainingTime));       // Refresh LCD with new time
+        sessionStartTime = QDateTime::currentDateTime();  // ✅ Set the start time
+        lcdNumber->display(formatTime(remainingTime));
         timer->start(1000);
         isRunning = true;
         ui->TimerStart->setEnabled(false);
@@ -125,26 +142,47 @@ void Timer::handleStart()
 void Timer::handlePauseResume()
 {
     if (isRunning) {
-        timer->stop(); // Pause the timer
+        timer->stop();
         isRunning = false;
-        ui->TimerPause->setText("Resume"); // Change the button text to "Resume"
+        ui->TimerPause->setText("Resume");
     } else {
-        timer->start(1000); // Resume the timer
+        timer->start(1000);
         isRunning = true;
-        ui->TimerPause->setText("Pause"); // Change the button text back to "Pause"
+        ui->TimerPause->setText("Pause");
+
+        pauseCounter++;  // ✅ Increment pause count when resuming
+        qDebug() << "Pause Count:" << pauseCounter;
     }
 }
 
+
 void Timer::resetSession()
 {
-    timer->stop(); // Stop the timer
+    if (!isRunning) return;  // ✅ Prevent saving empty sessions
+
+    QDateTime sessionEndTime = QDateTime::currentDateTime();
+    int elapsedFocusTime = (sessionStartTime.secsTo(sessionEndTime) / 60);
+
+    if (elapsedFocusTime > 0) {
+        db->insertSession(sessionStartTime, sessionEndTime, elapsedFocusTime, currentBreaks, pauseCounter, "");
+    }
+
+    // ✅ Reset Timer
+    timer->stop();
     isRunning = false;
-    remainingTime = totalTime; // Reset remaining time to the default
-    lcdNumber->display(formatTime(remainingTime)); // Reset display to the default time
-    drawCircle(); // Redraw the circle
-    ui->TimerStart->setEnabled(true); // Enable the Start button
-    ui->TimerPause->setEnabled(false); // Disable the Pause button
+    remainingTime = totalTime;
+    pauseCounter = 0;
+    currentBreaks = 0;
+    lcdNumber->display(formatTime(remainingTime));
+    drawCircle();
+    ui->TimerStart->setEnabled(true);
+    ui->TimerPause->setEnabled(false);
+
+    updateStatistics();  // ✅ Now history updates after every reset!
 }
+
+
+
 
 void Timer::updateTimer()
 {
@@ -252,5 +290,96 @@ void Timer::setupConnections()
     });
 }
 
+void Timer::updateStatistics()
+{
+    if (!db->getDatabase().isOpen()) {
+        qDebug() << "❌ ERROR: Database is not open! Attempting to reconnect...";
+        if (!db->connectDatabase()) {
+            qDebug() << "❌ Failed to reconnect!";
+            return;
+        } else {
+            qDebug() << "✅ Database Reconnected!";
+        }
+    }
 
+    QSqlQuery query(db->getDatabase());
+    query.clear();
 
+    // Fetch total statistics
+    int totalFocus = 0, totalBreaks = 0, totalPauses = 0, totalSessions = 0;
+    if (query.exec("SELECT SUM(FocusDuration), SUM(BreaksTaken), SUM(PauseCount), COUNT(*) FROM PomodoroSessions") && query.next()) {
+        totalFocus = query.value(0).isNull() ? 0 : query.value(0).toInt();
+        totalBreaks = query.value(1).isNull() ? 0 : query.value(1).toInt();
+        totalPauses = query.value(2).isNull() ? 0 : query.value(2).toInt();
+        totalSessions = query.value(3).isNull() ? 0 : query.value(3).toInt();
+    } else {
+        qDebug() << "❌ Failed to fetch total statistics:" << query.lastError().text();
+    }
+    query.finish();
+
+    qDebug() << "🟢 Total Focus Time:" << totalFocus;
+    qDebug() << "🟢 Total Breaks Taken:" << totalBreaks;
+    qDebug() << "🟢 Total Pauses:" << totalPauses;
+    qDebug() << "🟢 Total Sessions:" << totalSessions;
+
+    // Fetch last 5 session history
+    ui->SessionHistoryTable->clearContents();
+    ui->SessionHistoryTable->setRowCount(0);
+
+    if (!query.exec("SELECT TOP 5 StartTime, EndTime, FocusDuration, BreaksTaken FROM PomodoroSessions ORDER BY StartTime DESC")) {
+        qDebug() << "❌ Failed to fetch session history:" << query.lastError().text();
+    } else {
+        int row = 0;
+        while (query.next()) {
+            QString startTime = query.value(0).toString();
+            QString endTime = query.value(1).toString();
+            QString focusDuration = query.value(2).isNull() ? "0" : QString::number(query.value(2).toInt());
+            QString breaks = query.value(3).isNull() ? "0" : QString::number(query.value(3).toInt());
+
+            ui->SessionHistoryTable->insertRow(row);
+            ui->SessionHistoryTable->setItem(row, 0, new QTableWidgetItem(startTime));
+            ui->SessionHistoryTable->setItem(row, 1, new QTableWidgetItem(endTime));
+            ui->SessionHistoryTable->setItem(row, 2, new QTableWidgetItem(focusDuration));
+            ui->SessionHistoryTable->setItem(row, 3, new QTableWidgetItem(breaks));
+
+            row++;
+        }
+    }
+
+    // Format Statistics in HTML
+    QString statsText = QString(
+                            "<h2><b>🔥 Pomodoro Statistics 🔥</b></h2>"
+                            "<p><b>🕒 Total Focus Time:</b> %1 minutes</p>"
+                            "<p><b>☕ Total Breaks Taken:</b> %2</p>"
+                            "<p><b>⏸️ Total Pauses:</b> %3</p>"
+                            "<p><b>📅 Total Sessions Completed:</b> %4</p><br>"
+                            ).arg(QString::number(totalFocus),
+                                 QString::number(totalBreaks),
+                                 QString::number(totalPauses),
+                                 QString::number(totalSessions));
+
+    // Append session history
+    statsText += "<h3><b>📜 Recent Pomodoro Sessions 📜</b></h3><br>";
+
+    if (!query.exec("SELECT TOP 5 StartTime, EndTime, FocusDuration, BreaksTaken FROM PomodoroSessions ORDER BY StartTime DESC")) {
+        qDebug() << "❌ Failed to fetch session history:" << query.lastError().text();
+    } else {
+        while (query.next()) {
+            statsText += QString(
+                             "<p><b>📌 Start:</b> %1</p>"
+                             "<p><b>⏳ End:</b> %2</p>"
+                             "<p><b>🕒 Focus:</b> %3 min</p>"
+                             "<p><b>☕ Breaks:</b> %4</p><br>"
+                             ).arg(query.value(0).toString(),
+                                  query.value(1).toString(),
+                                  query.value(2).isNull() ? "0" : query.value(2).toString(),
+                                  query.value(3).isNull() ? "0" : query.value(3).toString());
+        }
+    }
+    // Update QTextEdit with HTML formatting
+    if (ui->PomodoroStats) {
+        ui->PomodoroStats->setHtml(statsText);
+    }
+
+    qDebug() << "✅ Statistics & Session Table Updated!";
+}

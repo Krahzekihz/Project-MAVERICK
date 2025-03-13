@@ -7,6 +7,8 @@
 #include <QFileDialog>
 #include <QMediaPlayer>
 #include <QFormLayout>
+#include "database.h"  // ✅ Include database header
+
 
 namespace Ui {
 class PomodoroSettings;
@@ -17,9 +19,8 @@ class PomodoroSettings : public QDialog
     Q_OBJECT
 
 public:
-    explicit PomodoroSettings(QWidget *parent = nullptr);
+    explicit PomodoroSettings(Database *database, QWidget *parent = nullptr);  // ✅ Pass Database
     ~PomodoroSettings();
-
     int getFocusDuration() const;
     int getBreakDuration() const;
     int getBreaksPerSession() const;
@@ -33,7 +34,8 @@ public slots:
 
 private slots:
     void selectSound();
-
+    void resetDatabase();  // 🔥 New function to erase Pomodoro data
+    void resetToDefault();
 private:
     Ui::PomodoroSettings *ui;
 
@@ -43,7 +45,7 @@ private:
     QSpinBox *totalSessions;
     QPushButton *soundUpload;
     QPushButton *saveButton;
-
+    Database *db;
 
     QString soundPath;
 signals:

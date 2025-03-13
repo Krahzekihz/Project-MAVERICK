@@ -1,6 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include "database.h"
 #include "pomodorosettings.h"
 #include <QWidget>
 #include <QTimer>
@@ -14,6 +15,9 @@
 #include <QSystemTrayIcon>
 #include <QIcon>
 #include <QApplication>
+#include <QTableWidget>
+#include <QTextEdit>
+#include <QDateTime> // Include QDateTime for sessionStartTime
 
 namespace Ui {
 class Timer;
@@ -24,35 +28,34 @@ class Timer : public QWidget
     Q_OBJECT
 
 public:
-    explicit Timer(QWidget *parent = nullptr);
+    explicit Timer(Database *database, QWidget *parent = nullptr);
     ~Timer();
     void applySettings(PomodoroSettings *settings);
     void resetSession();
 
-
 private slots:
     void handleStart();
-
     void handlePauseResume();
     void updateTimer();
+    void updateStatistics();  // 🔥 Fetch statistics from DB
 
 private:
-    QString formatTime(int seconds); // Declare formatTime here
-
-    Ui::Timer *ui;
+    Ui::Timer *ui;  // ✅ UI Pointer
+    Database *db;   // ✅ Move db above settingsWindow
+    PomodoroSettings *settingsWindow;  // ✅ Settings Window
 
     QTimer *timer;
     QGraphicsScene *scene;
     QGraphicsEllipseItem *circle;
-    QGraphicsEllipseItem *outerCircle; // To hold the outer circle
-    QGraphicsEllipseItem *innerCircle; // To hold the inner circle'
+    QGraphicsEllipseItem *outerCircle;
+    QGraphicsEllipseItem *innerCircle;
     QGraphicsEllipseItem *progressCircle;
     QLCDNumber *lcdNumber;
 
     int totalTime;           // Total time for the session
     int remainingTime;       // Remaining time
     bool isRunning;
-    int breakTime;  // Break Time in Seconds
+    int breakTime;           // Break Time in Seconds
     int breaksPerSession;
     int currentBreaks;
     int totalSessions;
@@ -68,12 +71,14 @@ private:
     QMediaPlayer *player;
     QAudioOutput *audioOutput;
     bool soundEnabled;
-
     QSystemTrayIcon *tray;
     void showNotification(const QString &title, const QString &message);
 
-    PomodoroSettings *settingsWindow; // Declare the settings window pointer
+    QDateTime sessionStartTime;  // ✅ Store session start time
+    int pauseCounter;  // ✅ Track pauses
 
+    // Declare formatTime function
+    QString formatTime(int seconds); // Add this line
 };
 
 #endif // TIMER_H

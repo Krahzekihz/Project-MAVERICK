@@ -3,10 +3,13 @@
 #include "ui_pomodorosettings.h"
 #include <QMessageBox>
 #include <QFileDialog>
+#include <Qtsql/QSqlQuery>
+#include <Qtsql/QSqlError>
 
-PomodoroSettings::PomodoroSettings(QWidget *parent)
+PomodoroSettings::PomodoroSettings(Database *database, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::PomodoroSettings)
+    , db(database)  // ✅ Store database reference
 {
     ui->setupUi(this);
 
@@ -19,6 +22,9 @@ PomodoroSettings::PomodoroSettings(QWidget *parent)
     loadSettingsFromFile();
     connect(soundUpload, &QPushButton::clicked, this, &PomodoroSettings::selectSound);
     connect(saveButton, &QPushButton::clicked, this, &PomodoroSettings::saveSettings);
+    connect(ui->ResetDatabaseButton, &QPushButton::clicked, this, &PomodoroSettings::resetDatabase);
+    connect(ui->ResetDefaultsButton, &QPushButton::clicked, this, &PomodoroSettings::resetToDefault);
+
 
     connect(saveButton, &QPushButton::clicked, this, [=]() {
         saveSettingsToFile();       // Save the settings
@@ -93,3 +99,61 @@ int PomodoroSettings::getBreakDuration() const { return breakDuration->value(); 
 int PomodoroSettings::getBreaksPerSession() const { return breaksPerSession->value(); }
 int PomodoroSettings::getTotalSessions() const { return totalSessions->value(); }
 QString PomodoroSettings::getSoundPath() const { return soundPath; }
+
+
+void PomodoroSettings::resetDatabase()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Reset Database",
+                                  "Are you sure you want to erase all Pomodoro data?\n\n"
+                                  "⚠️ *Note:* You need to restart the program for changes to take effect.",
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        if (!db->getDatabase().isOpen()) {  // ✅ Use 'db->' since it's a pointer
+            QMessageBox::critical(this, "Error",
+                                  "Database is not open! Attempting to reconnect...");
+
+            if (!db->connectDatabase()) {
+                QMessageBox::critical(this, "Error",
+                                      "Failed to reconnect to the database!");
+                return;
+            }
+        }
+
+        QSqlQuery query(db->getDatabase());  // ✅ Use 'db->' correctly
+
+        if (query.exec("DELETE FROM PomodoroSessions")) {
+            QMessageBox::information(this, "Success",
+                                     "All Pomodoro session data has been erased.\n\n"
+                                     "⚠️ Please restart the application to refresh the database.");
+        } else {
+            QMessageBox::critical(this, "Error",
+                                  "Failed to reset database: " + query.lastError().text());
+        }
+    }
+}
+
+void PomodoroSettings::resetToDefault()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Reset to Default",
+                                  "Are you sure you want to reset Pomodoro settings to default?\n"
+                                  "This will reset focus time, break time, and session counts.",
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        // 🔥 Reset values to default
+        focusDuration->setValue(25);
+        breakDuration->setValue(5);
+        breaksPerSession->setValue(4);
+        totalSessions->setValue(5);
+        soundPath = "";  // Clear custom sound
+
+        // 🔥 Save to INI file
+        saveSettingsToFile();
+
+        QMessageBox::information(this, "Settings Reset",
+                                 "Pomodoro settings have been restored to default values.");
+    }
+}
