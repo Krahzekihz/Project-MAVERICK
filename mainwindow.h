@@ -2,7 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QTabWidget>
+#include <QDate>
+
+#include "taskmanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -12,14 +14,18 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+private slots:
+    void onSaveTaskClicked();
+    void onViewTaskClicked();
+    void updateCurrentDateLabel();
 
 private:
     Ui::MainWindow *ui;
-    QTabWidget *tabWidget;
+    TaskManager taskManager;
 
-    void setupTabs();
+    void connectSignals();
 };
-
 #endif // MAINWINDOW_H
