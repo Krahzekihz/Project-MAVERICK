@@ -6,45 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1128</width>
-    <height>631</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QTabWidget" name="tabWidget">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>1121</width>
-      <height>581</height>
-     </rect>
-    </property>
-    <property name="tabPosition">
-     <enum>QTabWidget::TabPosition::West</enum>
-    </property>
-    <widget class="QWidget" name="tab">
-     <attribute name="title">
-      <string>Tab 1</string>
-     </attribute>
-    </widget>
-    <widget class="QWidget" name="tab_2">
-     <attribute name="title">
-      <string>Tab 2</string>
-     </attribute>
-    </widget>
-   </widget>
-  </widget>
+  <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1128</width>
-     <height>21</height>
+     <width>800</width>
+     <height>17</height>
     </rect>
    </property>
   </widget>
